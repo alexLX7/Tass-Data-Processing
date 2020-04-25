@@ -20,7 +20,7 @@ class Cleaner:
             list_of_df.append(pd.DataFrame(data))
         self.df = pd.concat(list_of_df, ignore_index=True)
 
-    def save_df_as_image(self):
+    def save_df_as_image(self, path_to_save_the_image):
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -36,8 +36,29 @@ class Cleaner:
         print('...going to save the image...')
 
         fig = sns_plot.get_figure()
-        fig.savefig("output_images/data_as_is.png")
+        fig.savefig(path_to_save_the_image + ".png")
         print('...saved')
+
+    def save_df_as_csv(self, path_to_save_the_df):
+        # self.df.head(100).to_csv('data/df_head_100.csv')
+        # self.df.to_csv('data/cleared_data.csv')  # ~160Mb
+        self.df.to_csv(path_to_save_the_df + '.csv')
+
+    def drop_redundant_data(self):
+        df = self.df
+
+        print('original shape:')
+        print(df.shape)
+
+        print('deleted all duplicates:')
+        df = df.loc[~df.timestamp.duplicated(keep='first')]
+        print(df.shape)
+
+        print('deleted all items without an article:')
+        df = df[df.article_text.notnull()]
+        print(df.shape)
+
+        self.df = df
 
     def show_basic_info(self):
         df = self.df
