@@ -4,91 +4,50 @@ import pandas as pd
 import pickle
 
 
-class Cleaning:
-    def __init__(self, path):
+class Cleaner:
+    def __init__(self, list_of_paths):
         super().__init__()
-        self.path = path
+        self.list_of_paths = list_of_paths
         self.df = None
         self.init()
-        print(self.df.head())
+        # print(self.df.head())
 
     def init(self):
-        with open(self.path, 'rb') as f:
-            data = pickle.load(f)
-        self.df = pd.DataFrame(data)
+        list_of_df = []
+        for i, path in enumerate(self.list_of_paths):
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+            list_of_df.append(pd.DataFrame(data))
+        self.df = pd.concat(list_of_df, ignore_index=True)
 
+    def save_df_as_image(self):
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        matplotlib.style.use('ggplot')
+        import seaborn as sns
+        matplotlib.rcParams['figure.figsize'] = (20, 20)  # (12,8)
 
-class Draft:
-    def __init__(self, path):
-        super().__init__()
-        self.path = path
-        self.df = None
+        print('visualizing...')
+        cols = self.df.columns
+        colors = ['#b00b69', '#2b2b2b']  # 9e9e9e
+        sns_plot = sns.heatmap(
+            self.df[cols].isnull(), cmap=sns.color_palette(colors))
+        print('...going to save the image...')
 
-    def set_df(self):
-        with open(self.path, 'rb') as f:
-            data = pickle.load(f)
-        return pd.DataFrame(data)
+        fig = sns_plot.get_figure()
+        fig.savefig("output_images/data_as_is.png")
+        print('...saved')
 
-    def print_head(self):
-        print(self.df.head())
-
-    def print_shape(self):
-        print(self.df.shape)
-
-    def print_all_categories(self):
-        s = pd.Series(list(set(self.df['category'])))  # 15 categories in total
-        print(s)
-        print(s.describe())
-
-    def print_describe_category(self):
-        s = pd.Series(self.df['category'])
-        print(s.describe())
-
-    def has_virus(self, input_):
-
-        pass
-        # print(type(input_))
-        # print(input_)
-
-    def process_(self, df):
-        df['related_to_virus'] = df['article_text'].str.contains(
-            'covid|вирус', regex=True)
-        # pass
-        # df['related_to_virus'] = self.has_virus(df['title'])
-        print(df)
-
-        # for index, value in df.items():
-        #     print(f"Index : {index}, Value : {value}")
-
-    def test_0(self):
-        pd.set_option('display.max_columns', None)
-        df = self.set_df()
-
+    def show_basic_info(self):
+        df = self.df
         print(df.shape)
-        # self.process_(df)
-        # print(df)
+        print(df.dtypes)
 
-        # print(df['title'])
+        df_numeric = df.select_dtypes(include=[np.number])
+        numeric_cols = df_numeric.columns.values
+        print(numeric_cols)
 
-        # df = df.groupby('date')['href'].nunique()
-        # print (df)
-
-        # print(df.shape)
-        # print(df.head())
-
-        # df[df.duplicated(keep=False)]
-        # print(df.shape)
-        # print(df.head())
-
-        # # ids = df["href"]  # list_of_unique_hrefs
-        # # new_df = df[ids.isin(ids[ids.duplicated()])] # .sort("href")
-        # # new_df = pd.concat(g for _, g in df.groupby("href") if len(g) > 1)
-        # print(new_df.shape)
-        # print(new_df.head())
-
-        # df.drop_duplicates(keep=False, inplace=True)
-        # print(df.shape)
-        # print(df.head())
-
-    def run(self):
-        self.test_0()
+        df_non_numeric = df.select_dtypes(exclude=[np.number])
+        non_numeric_cols = df_non_numeric.columns.values
+        print(non_numeric_cols)
