@@ -15,9 +15,7 @@ class Extractor:
         self.path = path
         self.pretty_time = PrettyTime(
             '2020-04-21 00:00:00',  # Y, m, d, h, m, s
-            '2020-04-20 21:00:00'
-            # '2020-04-21 00:00:00',  # Y, m, d, h, m, s
-            # '2020-03-30 00:00:00'
+            '2020-04-20 00:00:00'
         )
         # first date is closer to today, the count goes like this:
         # recent news (which are on top) go down below (to the bottom)
@@ -95,9 +93,9 @@ class Extractor:
         response = requests.get(mainpage)
         dict_of_response = response.json()
         cur_news = []
-        df = dict_of_response['articles']
+        dict_of_articles = dict_of_response['articles']
         tass_link = 'https://tass.ru'
-        for item in df:
+        for item in dict_of_articles:
             try:
                 new = {}
 
