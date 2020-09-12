@@ -1,7 +1,8 @@
 from extracting import Extractor
 from cleaning import Cleaner
-from analyzing import Analyzer
 import time
+# import os
+# import csv
 
 
 # all info with articles from the 2019.10.01 up to 2020.04.21
@@ -39,6 +40,7 @@ def cleaning():
 
 
 def analyzing():
+    # estimated time is about ~ 2 mins
     print('\n\n\nanalyzing...')
     instance_of_workspace = Cleaner(list_of_paths_to_process)
     instance_of_workspace.drop_redundant_data()
@@ -46,6 +48,54 @@ def analyzing():
     df = instance_of_workspace.df
     print(df.shape)
     print(df)
+    text = ' '.join(df['article_text'].tolist())
+    # print(text[:300])
+    text = text.lower()
+    import string
+    # print(string.punctuation)
+    spec_chars = string.punctuation + '\n\xa0«»\t—…' 
+    # print(spec_chars)
+
+    print('\n\n\nanalyzing...')
+    
+    text = "".join([ch for ch in text if ch not in spec_chars])
+    text = "".join([ch for ch in text if ch not in string.digits])
+
+    from nltk import word_tokenize
+    text_tokens = word_tokenize(text)
+
+    from nltk.corpus import stopwords
+    russian_stopwords = stopwords.words("russian")
+    russian_stopwords.extend(
+        [
+            'это', 
+            'также',
+            'которые',
+            'который',
+            'которых',
+            'которая',
+            'тасс',
+            'года',
+            'году',
+            'лет',
+            'ранее',
+            'изза',
+            'числе',
+            'очень',
+            'пока',
+        ]
+    )
+
+    # print(len(russian_stopwords))
+    text_tokens = [token.strip() for token in text_tokens if token not in russian_stopwords]
+    print('len(text_tokens): ' + str(len(text_tokens)))
+
+    import nltk
+    text = nltk.Text(text_tokens)
+
+    fdist_sw = nltk.FreqDist(text)
+    print('list of the most common words: (Oct 2019 -> Apr 2020)')
+    print(fdist_sw.most_common(100))
 
 
 def main():
@@ -54,9 +104,9 @@ def main():
 
     # extracting()  # saves the data to .pickle
 
-    cleaning()  # reads list of .pickle files and cleans that
+    # cleaning()  # reads list of .pickle files and cleans that
 
-    analyzing()  # uses all previous steps to make some conclusion
+    analyzing()  # uses all previous steps to make a final conclusion, prints info about the text
 
     print('\nDONE.\n')
     print("--- %s seconds ---" % (time.time() - start_time))
